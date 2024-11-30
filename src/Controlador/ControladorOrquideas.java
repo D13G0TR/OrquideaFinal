@@ -7,6 +7,7 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.util.Random;
 
 public class ControladorOrquideas {
     private BaseDeDatos db;
@@ -68,6 +69,8 @@ public class ControladorOrquideas {
         modelo.addColumn("Nombre");
         modelo.addColumn("Fecha de Riego");
         modelo.addColumn("Hora de Riego");
+        modelo.addColumn("Humedad"); // Nueva columna
+        modelo.addColumn("Temperatura"); // Nueva columna
         modelo.addColumn("Estado"); // Nueva columna para el estado
 
         // Agregar filas al modelo
@@ -232,5 +235,31 @@ private void actualizarEstadosPlantas() {
         vista.mostrarMensaje("Error al cargar las plantas: " + e.getMessage());
     }
     }
+    
+    private void simularSensores() {
+    Random random = new Random();
+    try {
+        // Obtener la lista de plantas desde la base de datos
+        var plantas = db.obtenerPlantas();
+
+        // Simular datos para cada planta
+        for (String[] planta : plantas) {
+            int plantaId = Integer.parseInt(planta[0]); 
+            int humedad = random.nextInt(101); 
+            double temperatura = 20 + random.nextDouble() * 10; 
+
+            // Actualizar los valores en la base de datos
+            db.actualizarSensores(plantaId, humedad, temperatura);
+        }
+
+        // Actualizar la tabla
+        cargarTablaPlantas(); 
+
+    } catch (Exception e) {
+        vista.mostrarMensaje("Error al simular sensores: " + e.getMessage());
+    }
+}
+    
+    
 }
 

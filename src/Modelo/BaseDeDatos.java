@@ -15,7 +15,7 @@ public class BaseDeDatos {
     public void conectar() throws Exception {
         String url = "jdbc:mysql://localhost:3306/orquideas"; // Cambia si tu base de datos tiene otro nombre
         String usuario = "root"; // Usuario de tu base de datos
-        String contraseña = "123456"; // Contraseña de tu base de datos
+        String contraseña = ""; // Contraseña de tu base de datos
         conexion = DriverManager.getConnection(url, usuario, contraseña);
         System.out.println("Conexión exitosa a la base de datos.");
     }
@@ -32,7 +32,7 @@ public class BaseDeDatos {
 
     // Método para guardar solo el nombre de la planta
     public void guardarNombrePlanta(String nombre) throws Exception {
-        String query = "INSERT INTO orquidea (nombre, humedad, temperatura) VALUES (?, NULL, NULL)";
+        String query = "INSERT INTO orquidea (nombre, humedad, temperatura) VALUES (?, 0, 0)";
         try (PreparedStatement stmt = conexion.prepareStatement(query)) {
             stmt.setString(1, nombre);
             stmt.executeUpdate();
@@ -44,9 +44,9 @@ public class BaseDeDatos {
 
     // Método para obtener la lista de plantas con estado
 public List<String[]> obtenerPlantas() throws Exception {
-    String query = "SELECT o.id, o.nombre, r.fecha_riego, r.hora_riego, o.estado " +
+    String query = "SELECT o.id, o.nombre, r.fecha_riego, r.hora_riego, o.estado, o.humedad, o.temperatura" +
                    "FROM orquidea o " +
-                   "LEFT JOIN programacion_riego r ON o.id = r.planta_id";
+                   "LEFT JOIN programacion_riego r ON o.id = r.planta_id;";
     PreparedStatement stmt = conexion.prepareStatement(query);
     ResultSet rs = stmt.executeQuery();
 
@@ -57,6 +57,8 @@ public List<String[]> obtenerPlantas() throws Exception {
         String nombre = rs.getString("nombre");                // Nombre de la planta
         String fechaRiego = rs.getString("fecha_riego");       // Fecha de riego (puede ser NULL)
         String horaRiego = rs.getString("hora_riego");         // Hora de riego (puede ser NULL)
+        String humedad = String.valueOf(rs.getInt("humedad")); // Obtener humedad
+        String temperatura = String.valueOf(rs.getDouble("temperatura")); // Obtener temperatura
         String estado = rs.getString("estado");                // Estado de la planta
 
         // Manejar valores NULL
@@ -91,7 +93,7 @@ public List<String[]> obtenerPlantas() throws Exception {
     
     
 public void actualizarEstado(int plantaId, String estado) throws Exception {
-    String query = "UPDATE orquidea SET estado = ? WHERE id = ?";
+    String query = "UPDATE orquidea SET estado = ?  WHERE id = ?";
     try (PreparedStatement stmt = conexion.prepareStatement(query)) {
         stmt.setString(1, estado);  // Nuevo estado
         stmt.setInt(2, plantaId);  // ID de la planta
@@ -122,4 +124,19 @@ public void actualizarEstado(int plantaId, String estado) throws Exception {
             System.err.println("Error al cerrar la conexión: " + e.getMessage());
         }
     }
+    
+    
+     public void actualizarSensores(int plantaId, int humedad, double temperatura) throws Exception {
+    String query = "UPDATE orquidea SET humedad = ?, temperatura = ? WHERE id = ?";
+    try (PreparedStatement stmt = conexion.prepareStatement(query)) {
+        stmt.setInt(1, humedad);
+        stmt.setDouble(2, temperatura);
+        stmt.setInt(3, plantaId);
+        stmt.executeUpdate();
+        System.out.println("Sensores actualizados para la planta ID: " + plantaId);
+    } catch (SQLException e) {
+        throw new Exception("Error al actualizar sensores: " + e.getMessage());
+    }
+}
+    
 }
