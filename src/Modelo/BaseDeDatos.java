@@ -15,7 +15,7 @@ public class BaseDeDatos {
     public void conectar() throws Exception {
         String url = "jdbc:mysql://localhost:3306/orquideas"; // Cambia si tu base de datos tiene otro nombre
         String usuario = "root"; // Usuario de tu base de datos
-        String contraseña = ""; // Contraseña de tu base de datos
+        String contraseña = "123456"; // Contraseña de tu base de datos
         conexion = DriverManager.getConnection(url, usuario, contraseña);
         System.out.println("Conexión exitosa a la base de datos.");
     }
@@ -44,31 +44,35 @@ public class BaseDeDatos {
 
     // Método para obtener la lista de plantas con estado
 public List<String[]> obtenerPlantas() throws Exception {
-    String query = "SELECT o.id, o.nombre, r.fecha_riego, r.hora_riego, o.estado, o.humedad, o.temperatura" +
-                   "FROM orquidea o " +
-                   "LEFT JOIN programacion_riego r ON o.id = r.planta_id;";
+    String query = "SELECT o.id, o.nombre, r.fecha_riego, r.hora_riego, o.humedad, o.temperatura, o.estado " +
+               "FROM orquidea o " +
+               "LEFT JOIN programacion_riego r ON o.id = r.planta_id;";
+
+
     PreparedStatement stmt = conexion.prepareStatement(query);
     ResultSet rs = stmt.executeQuery();
 
     // Lista para almacenar los resultados
     List<String[]> plantas = new ArrayList<>();
-    while (rs.next()) {
-        String id = String.valueOf(rs.getInt("id"));           // ID de la planta
-        String nombre = rs.getString("nombre");                // Nombre de la planta
-        String fechaRiego = rs.getString("fecha_riego");       // Fecha de riego (puede ser NULL)
-        String horaRiego = rs.getString("hora_riego");         // Hora de riego (puede ser NULL)
-        String humedad = String.valueOf(rs.getInt("humedad")); // Obtener humedad
-        String temperatura = String.valueOf(rs.getDouble("temperatura")); // Obtener temperatura
-        String estado = rs.getString("estado");                // Estado de la planta
+        while (rs.next()) {
+            String id = String.valueOf(rs.getInt("id"));
+            String nombre = rs.getString("nombre");
+            String fechaRiego = rs.getString("fecha_riego");
+            String horaRiego = rs.getString("hora_riego");
+            String humedad = rs.getString("humedad");
+            String temperatura = rs.getString("temperatura");
+            String estado = rs.getString("estado");
 
-        // Manejar valores NULL
-        if (fechaRiego == null) fechaRiego = ""; // Mostrar en blanco si no hay fecha
-        if (horaRiego == null) horaRiego = "";   // Mostrar en blanco si no hay hora
-        if (estado == null) estado = "";         // Mostrar en blanco si no hay estado
+            // Manejar valores NULL (si es necesario)
+            if (fechaRiego == null) fechaRiego = "";
+            if (horaRiego == null) horaRiego = "";
+            if (humedad == null) humedad = "";
+            if (temperatura == null) temperatura = "";
+            if (estado == null) estado = "";
 
-        // Agregar los datos a la lista
-        plantas.add(new String[] { id, nombre, fechaRiego, horaRiego, estado });
-    }
+            plantas.add(new String[] { id, nombre, fechaRiego, horaRiego, humedad, temperatura, estado });
+}
+
 
     // Cerrar recursos
     rs.close();

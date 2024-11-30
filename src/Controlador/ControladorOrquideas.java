@@ -63,19 +63,32 @@ public class ControladorOrquideas {
         // Obtener los datos desde la base de datos
         var plantas = db.obtenerPlantas();
 
-        // Modelo de la tabla
+        // Crear el modelo de la tabla con los encabezados correctos
         DefaultTableModel modelo = new DefaultTableModel();
         modelo.addColumn("ID");
         modelo.addColumn("Nombre");
         modelo.addColumn("Fecha de Riego");
         modelo.addColumn("Hora de Riego");
-        modelo.addColumn("Humedad"); // Nueva columna
-        modelo.addColumn("Temperatura"); // Nueva columna
-        modelo.addColumn("Estado"); // Nueva columna para el estado
+        modelo.addColumn("Humedad");
+        modelo.addColumn("Temperatura");
+        modelo.addColumn("Estado");
 
-        // Agregar filas al modelo
+        // Agregar las filas al modelo asegurando el orden correcto
         for (String[] planta : plantas) {
-            modelo.addRow(planta);
+            // Imprimir para depuración (puedes eliminar esta línea si no es necesaria)
+            System.out.println("Planta cargada: " + java.util.Arrays.toString(planta));
+
+            // Validar que el arreglo tiene al menos 7 elementos y manejar valores faltantes
+            String id = planta.length > 0 ? planta[0] : "";
+            String nombre = planta.length > 1 ? planta[1] : "";
+            String fechaRiego = planta.length > 2 ? planta[2] : "";
+            String horaRiego = planta.length > 3 ? planta[3] : "";
+            String humedad = planta.length > 4 ? planta[4] : "";
+            String temperatura = planta.length > 5 ? planta[5] : "";
+            String estado = planta.length > 6 ? planta[6] : "";
+
+            // Agregar la fila con los valores procesados
+            modelo.addRow(new Object[] { id, nombre, fechaRiego, horaRiego, humedad, temperatura, estado });
         }
 
         // Asignar el modelo a la tabla
@@ -84,6 +97,8 @@ public class ControladorOrquideas {
         vista.mostrarMensaje("Error al cargar los datos: " + e.getMessage());
     }
 }
+
+
 
 
     private void programarRiego() {
