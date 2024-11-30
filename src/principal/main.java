@@ -2,6 +2,7 @@ package principal;
 
 import Controlador.ControladorOrquideas;
 import Modelo.BaseDeDatos;
+import Vista.VistaLogin;
 import Vista.VistaPrincipal;
 
 public class main {
@@ -10,7 +11,7 @@ public class main {
             // Inicializar la base de datos
             BaseDeDatos db = new BaseDeDatos();
             db.conectar();
-
+            
             // Inicializar la vista
             VistaPrincipal vista = new VistaPrincipal();
 
