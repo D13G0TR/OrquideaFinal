@@ -10,7 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class VistaLogin extends javax.swing.JFrame {
-    
+    private boolean loginExitoso = false; // Asegúrate de usar esta variable
     private VistaRegistro vistaRegistro;
     
     public VistaLogin(VistaRegistro vistaRegistro) {
@@ -18,14 +18,20 @@ public class VistaLogin extends javax.swing.JFrame {
         this.vistaRegistro = vistaRegistro;
     }
 
+    // Constructor por defecto
     public VistaLogin() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        initComponents();
     }
 
     public String getNombreUsuario() {
         return jTextField1.getText().trim();
     }
-
+    
+    // Método para verificar si el login fue exitoso
+    public boolean fueLoginExitoso() {
+        return loginExitoso;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -123,11 +129,12 @@ public class VistaLogin extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
- 
+     
     private void AccederActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AccederActionPerformed
-    String nombreUsuario = jTextField1.getText().trim();
+        String nombreUsuario = jTextField1.getText().trim();
     String contraseña = new String(jPasswordField1.getPassword()).trim();
 
+    // Validación básica de campos vacíos
     if (nombreUsuario.isEmpty() || contraseña.isEmpty()) {
         JOptionPane.showMessageDialog(this, "Por favor, ingrese un nombre de usuario y contraseña.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
@@ -135,57 +142,27 @@ public class VistaLogin extends javax.swing.JFrame {
 
     // Encriptar la contraseña antes de compararla
     String contraseñaEncriptada = encriptarContraseña(contraseña);
-    
-    // Verificar en la base de datos
-    if (verificarUsuario(nombreUsuario, contraseñaEncriptada)) {
-        JOptionPane.showMessageDialog(this, "Acceso exitoso.", "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
 
-        // Crear una instancia de VistaPrincipal y mostrarla
-        VistaPrincipal vistaPrincipal = new VistaPrincipal();
-        vistaPrincipal.setVisible(true);
+    // Crear instancia de BaseDeDatos y conectar
+    BaseDeDatos baseDeDatos = new BaseDeDatos();
+    try {
+        baseDeDatos.conectar(); // Asegúrate de que la conexión esté activa
+        boolean loginExitoso = baseDeDatos.verificarUsuario(nombreUsuario, contraseñaEncriptada);
 
-        // Cerrar la ventana de login
-        dispose();
-    } else {
-        JOptionPane.showMessageDialog(this, "Acceso denegado. Nombre de usuario o contraseña incorrectos.", "Error", JOptionPane.ERROR_MESSAGE);
+        // Si el login es exitoso, establecer el flag
+        if (loginExitoso) {
+            this.loginExitoso = true;
+            JOptionPane.showMessageDialog(this, "Acceso exitoso.", "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
+            dispose(); // Cerrar ventana de login
+        } else {
+            JOptionPane.showMessageDialog(this, "Acceso denegado. Nombre de usuario o contraseña incorrectos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error al conectar a la base de datos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    } finally {
+        baseDeDatos.cerrarConexion(); // Asegúrate de cerrar la conexión después
     }
-}
-
-    private boolean verificarUsuario(String nombreUsuario, String contraseñaEncriptada) {
-        BaseDeDatos baseDeDatos = new BaseDeDatos();
-        Connection conexion = baseDeDatos.getConexion();
-            if (conexion == null) {
-            JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        try (PreparedStatement ps = conexion.prepareStatement("SELECT * FROM usuarios WHERE nombre_usuario = ? AND contraseña = ?")) {
-            ps.setString(1, nombreUsuario);
-            ps.setString(2, contraseñaEncriptada);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                boolean userFound = rs.next();
-            
-                // Debug print
-                System.out.println("User found: " + userFound);
-            
-                return userFound;
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al verificar usuario: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(); // Print full stack trace for more details
-            return false;
-        }
     }//GEN-LAST:event_AccederActionPerformed
-
-    private void RegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistrarseActionPerformed
-        vistaRegistro.setVisible(true);
-        dispose();
-    }//GEN-LAST:event_RegistrarseActionPerformed
-
-    private void SalirjButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SalirjButton1ActionPerformed
-        System.exit(0);
-    }//GEN-LAST:event_SalirjButton1ActionPerformed
 
     private String encriptarContraseña(String contraseña) {
         try {
@@ -200,27 +177,20 @@ public class VistaLogin extends javax.swing.JFrame {
             throw new RuntimeException(e);
         }
     }
+    
+    private void RegistrarseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistrarseActionPerformed
+    vistaRegistro.setVisible(true); // Mostrar la ventana de registro
+    setVisible(false); // Ocultar la ventana de login en lugar de cerrarla
+
+    }//GEN-LAST:event_RegistrarseActionPerformed
+
+    private void SalirjButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SalirjButton1ActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_SalirjButton1ActionPerformed
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(VistaLogin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(VistaLogin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(VistaLogin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(VistaLogin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 VistaRegistro vistaRegistro = new VistaRegistro();

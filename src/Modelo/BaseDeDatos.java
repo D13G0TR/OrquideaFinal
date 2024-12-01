@@ -142,5 +142,20 @@ public void actualizarEstado(int plantaId, String estado) throws Exception {
         throw new Exception("Error al actualizar sensores: " + e.getMessage());
     }
 }
-    
+     
+    public boolean verificarUsuario(String nombreUsuario, String contraseñaEncriptada) {
+    if (conexion == null) return false;
+
+    try (PreparedStatement ps = conexion.prepareStatement("SELECT * FROM usuarios WHERE nombre_usuario = ? AND contraseña = ?")) {
+        ps.setString(1, nombreUsuario);
+        ps.setString(2, contraseñaEncriptada);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next(); // Retorna true si el usuario fue encontrado
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 }
