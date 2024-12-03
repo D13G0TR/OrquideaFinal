@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.Random;
+import javax.swing.Timer;
 
 public class ControladorOrquideas {
     private BaseDeDatos db;
@@ -27,6 +28,9 @@ public class ControladorOrquideas {
         
         // Cargar los datos en la tabla al iniciar
         cargarTablaPlantas();
+        
+        Timer timerSensores = new Timer(5000, e -> simularSensores());
+        timerSensores.start();
         
         
         new javax.swing.Timer(60000, e -> actualizarEstadosPlantas()).start();

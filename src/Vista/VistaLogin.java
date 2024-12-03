@@ -16,6 +16,8 @@ public class VistaLogin extends javax.swing.JFrame {
     public VistaLogin(VistaRegistro vistaRegistro) {
         initComponents();
         this.vistaRegistro = vistaRegistro;
+        this.setTitle("monitoreo de plantas");
+        this.setLocationRelativeTo(null);
     }
 
     // Constructor por defecto

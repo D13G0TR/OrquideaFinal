@@ -17,6 +17,8 @@ public class VistaRegistro extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         getContentPane().add(jLabel10);
         jLabel10.setBounds(355, 57, 200, 20);
+        this.setTitle("monitoreo de plantas");
+        this.setLocationRelativeTo(null);
     }
 
     /**
