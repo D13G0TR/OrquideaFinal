@@ -167,7 +167,7 @@ public class VistaRegistro extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void RegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RegistrarActionPerformed
-        String run = jTextField1.getText().trim();
+    String run = jTextField1.getText().trim();
     String nombre = jTextField2.getText().trim();
     String apellido = jTextField3.getText().trim();
     String nombreUsuario = jTextField4.getText().trim();
@@ -181,12 +181,14 @@ public class VistaRegistro extends javax.swing.JFrame {
 
     // Crear instancia de BaseDeDatos
     BaseDeDatos baseDeDatos = new BaseDeDatos();
+    Connection conn = null;
+    PreparedStatement stmt = null;
 
     try {
-        baseDeDatos.getConexion(); // Establece la conexión
-        Connection conn = baseDeDatos.getConexion(); // Obtiene la conexión
+        baseDeDatos.conectar(); // Establece la conexión
+        conn = baseDeDatos.getConexion(); // Obtiene la conexión
 
-        PreparedStatement stmt = conn.prepareStatement("INSERT INTO usuarios (run, digito_verificador, nombre, apellido, nombre_usuario, contraseña) VALUES (?, ?, ?, ?, ?, ?)");
+        stmt = conn.prepareStatement("INSERT INTO usuarios (run, digito_verificador, nombre, apellido, nombre_usuario, contraseña) VALUES (?, ?, ?, ?, ?, ?)");
         
         // Calcular el dígito verificador
         char digitoVerificador = calcularDigitoVerificador(run);
@@ -203,18 +205,41 @@ public class VistaRegistro extends javax.swing.JFrame {
         conn.setAutoCommit(false);
         stmt.executeUpdate();
         conn.commit();
-        conn.setAutoCommit(true);
         
         JOptionPane.showMessageDialog(this, "Usuario registrado exitosamente.");
-    } catch (Exception e) {
+
+        // Cerrar la ventana de registro
+        this.dispose(); // Cierra la ventana actual
+
+        // Iniciar la ventana de login
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new VistaLogin().setVisible(true);
+            }
+        });
+        
+    } catch (SQLException e) {
+        if (conn != null) {
+            try {
+                conn.rollback(); } catch (SQLException rollbackEx) {
+                JOptionPane.showMessageDialog(this, "Error al revertir cambios: " + rollbackEx.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
         JOptionPane.showMessageDialog(this, "Error al registrar usuario: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error inesperado: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     } finally {
-        // Asegurarse de cerrar la conexión
-        if (baseDeDatos != null) {
-            baseDeDatos.cerrarConexion();
+        // Cerrar el PreparedStatement, pero no la conexión
+        try {
+            if (stmt != null) {
+                stmt.close();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cerrar el PreparedStatement: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
+
 
 private char calcularDigitoVerificador(String run) {
     int suma = 0;

@@ -29,7 +29,7 @@ public class ControladorOrquideas {
         // Cargar los datos en la tabla al iniciar
         cargarTablaPlantas();
         
-        Timer timerSensores = new Timer(10000, e -> simularSensores());
+        Timer timerSensores = new Timer(30000, e -> simularSensores());
         timerSensores.start();
         
         

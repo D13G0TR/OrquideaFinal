@@ -13,7 +13,7 @@ public class BaseDeDatos {
 
     // Método para conectar a la base de datos
     public void conectar() throws Exception {
-        String url = "jdbc:mysql://localhost:3306/orquideas"; // Cambia si tu base de datos tiene otro nombre
+        String url = "jdbc:mysql://localhost:3306/orq"; // Cambia si tu base de datos tiene otro nombre
         String usuario = "root"; // Usuario de tu base de datos
         String contraseña = ""; // Contraseña de tu base de datos
         conexion = DriverManager.getConnection(url, usuario, contraseña);
