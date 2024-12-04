@@ -158,4 +158,74 @@ public void actualizarEstado(int plantaId, String estado) throws Exception {
         return false;
     }
 }
+    
+    public void registrarActividad(int plantaId, String tipoActividad, String valorAnterior, String valorNuevo) throws Exception {
+    String query = "INSERT INTO tblHistorial  (planta_id, fecha_hora, tipo_actividad, valor_anterior, valor_nuevo) VALUES (?, NOW(), ?, ?, ?)";
+    try (PreparedStatement stmt = conexion.prepareStatement(query)) {
+        stmt.setInt(1, plantaId);
+        stmt.setString(2, tipoActividad);
+        stmt.setString(3, valorAnterior);
+        stmt.setString(4, valorNuevo);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        throw new Exception("Error al registrar actividad: " + e.getMessage());
+    }
+}
+    
+    
+    public int obtenerHumedadPlanta(int plantaId) throws Exception {
+    String query = "SELECT humedad FROM orquidea WHERE id = ?";
+    try (PreparedStatement stmt = conexion.prepareStatement(query)) {
+        stmt.setInt(1, plantaId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("humedad");
+            } else {
+                throw new Exception("Planta no encontrada.");
+            }
+        }
+    }
+}
+
+public double obtenerTemperaturaPlanta(int plantaId) throws Exception {
+    String query = "SELECT temperatura FROM orquidea WHERE id = ?";
+    try (PreparedStatement stmt = conexion.prepareStatement(query)) {
+        stmt.setInt(1, plantaId);
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getDouble("temperatura");
+            } else {
+                throw new Exception("Planta no encontrada.");
+            }
+        }
+    }
+}
+
+
+public List<String[]> obtenerHistorial() throws Exception {
+    String query = "SELECT * FROM tblHistorial ORDER BY fecha_hora DESC";
+    List<String[]> historial = new ArrayList<>();
+    try (PreparedStatement stmt = conexion.prepareStatement(query);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            String id = String.valueOf(rs.getInt("id"));
+            String plantaIdStr = String.valueOf(rs.getInt("planta_id"));
+            String fechaHora = rs.getString("fecha_hora");
+            String tipoActividad = rs.getString("tipo_actividad");
+            String valorAnterior = rs.getString("valor_anterior");
+            String valorNuevo = rs.getString("valor_nuevo");
+            historial.add(new String[] { id, plantaIdStr, fechaHora, tipoActividad, valorAnterior, valorNuevo });
+        }
+    } catch (SQLException e) {
+        throw new Exception("Error al obtener el historial: " + e.getMessage());
+    }
+    return historial;
+}
+    
+    
+    
+    
+    
+    
 }

@@ -29,7 +29,7 @@ public class ControladorOrquideas {
         // Cargar los datos en la tabla al iniciar
         cargarTablaPlantas();
         
-        Timer timerSensores = new Timer(5000, e -> simularSensores());
+        Timer timerSensores = new Timer(10000, e -> simularSensores());
         timerSensores.start();
         
         
@@ -101,6 +101,36 @@ public class ControladorOrquideas {
         vista.mostrarMensaje("Error al cargar los datos: " + e.getMessage());
     }
 }
+    
+    
+    private void cargarTablaHistorial() {
+    try {
+        // Obtener el historial de la base de datos (sin filtro por planta)
+        var historial = db.obtenerHistorial(); // Asumo que tienes un método obtenerHistorial() sin parámetros en BaseDeDatos
+
+        // Crear el modelo de la tabla con los encabezados correctos
+        DefaultTableModel modelo = new DefaultTableModel();
+        modelo.addColumn("ID");
+        modelo.addColumn("Planta ID");
+        modelo.addColumn("Fecha y Hora");
+        modelo.addColumn("Tipo Actividad");
+        modelo.addColumn("Valor Anterior");
+        modelo.addColumn("Valor Nuevo");
+
+        // Agregar las filas al modelo
+        for (String[] actividad : historial) {
+            modelo.addRow(actividad); 
+        }
+
+        // Asignar el modelo a la tabla (tblPlantas, que ahora muestra el historial)
+        vista.getTblHistorial().setModel(modelo);
+    } catch (Exception e) {
+        vista.mostrarMensaje("Error al cargar el historial: " + e.getMessage());
+    }
+}
+    
+    
+    
 
 
 
@@ -255,7 +285,7 @@ private void actualizarEstadosPlantas() {
     }
     }
     
-    private void simularSensores() {
+private void simularSensores() {
     Random random = new Random();
     try {
         // Obtener la lista de plantas desde la base de datos
@@ -263,16 +293,39 @@ private void actualizarEstadosPlantas() {
 
         // Simular datos para cada planta
         for (String[] planta : plantas) {
-            int plantaId = Integer.parseInt(planta[0]); 
-            int humedad = random.nextInt(101); 
-            double temperatura = 20 + random.nextDouble() * 10; 
+            int plantaId = Integer.parseInt(planta[0]);
+
+            // Obtener los valores actuales de la base de datos
+            int humedadAnterior = db.obtenerHumedadPlanta(plantaId);
+            double temperaturaAnterior = db.obtenerTemperaturaPlanta(plantaId);
+
+            // Simular nuevos valores
+            int humedad = random.nextInt(101);
+            double temperatura = 20 + random.nextDouble() * 10;
+
+            // Mostrar alertas si los valores son críticos
+            if (humedad < 60) {
+                vista.mostrarMensaje("Alerta: La planta " + planta[1] + " necesita agua.");
+            } else if (humedad > 80) {
+                vista.mostrarMensaje("Alerta: La planta " + planta[1] + " tiene exceso de agua.");
+            }
+            if (temperatura < 20) {
+                vista.mostrarMensaje("Alerta: La planta " + planta[1] + " tiene temperatura baja.");
+            } else if (temperatura > 30) {
+                vista.mostrarMensaje("Alerta: La planta " + planta[1] + " tiene temperatura alta.");
+            }
 
             // Actualizar los valores en la base de datos
             db.actualizarSensores(plantaId, humedad, temperatura);
+
+            // Registrar la actividad (incluyendo los valores anteriores)
+            db.registrarActividad(plantaId, "Simulación de sensores", 
+                                 "Humedad: " + humedadAnterior + ", Temperatura: " + temperaturaAnterior, 
+                                 "Humedad: " + humedad + ", Temperatura: " + temperatura);
         }
 
         // Actualizar la tabla
-        cargarTablaPlantas(); 
+        cargarTablaPlantas();
 
     } catch (Exception e) {
         vista.mostrarMensaje("Error al simular sensores: " + e.getMessage());
